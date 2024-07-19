@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from web3 import Web3
 from web3.middleware import geth_poa_middleware  # Necessary for POA chains
-from sympy import primerange
 from eth_account.messages import encode_defunct
 
 def merkle_assignment():
@@ -46,7 +45,27 @@ def generate_primes(num_primes):
         Function to generate the first 'num_primes' prime numbers
         returns list (with length n) of primes (as ints) in ascending order
     """
-    primes_list = list(primerange(2, 84018))[:num_primes]
+    def is_prime(n):
+        if n <= 1:
+            return False
+        if n <= 3:
+            return True
+        if n % 2 == 0 or n % 3 == 0:
+            return False
+        i = 5
+        while i * i <= n:
+            if n % i == 0 or n % (i + 2) == 0:
+                return False
+            i += 6
+        return True
+
+    primes_list = []
+    num = 2
+    while len(primes_list) < num_primes:
+        if is_prime(num):
+            primes_list.append(num)
+        num += 1
+
     return primes_list
 
 
