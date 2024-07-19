@@ -78,66 +78,28 @@ def convert_leaves(primes_list):
     return leaves
 
 
-# def build_merkle(leaves):
-#     """
-#         Function to build a Merkle Tree from the list of prime numbers in bytes32 format.
-#         Returns the Merkle tree as a list where tree[0] is the list of leaves,
-#         tree[1] is the parent hashes, and so on until tree[n] which is the root hash.
-#     """
-#     tree = [leaves]
-    
-#     while len(tree[-1]) > 1:
-#         current_level = tree[-1]
-#         next_level = []
-        
-#         # Handle the case where the current level has an odd number of elements
-#         if len(current_level) % 2 != 0:
-#             current_level.append(current_level[-1])
-        
-#         for i in range(0, len(current_level), 2):
-#             left = current_level[i]
-#             right = current_level[i + 1]
-#             next_level.append(hash_pair(left, right))
-        
-#         tree.append(next_level)
-    
-#     return tree
 def build_merkle(leaves):
     """
         Function to build a Merkle Tree from the list of prime numbers in bytes32 format.
-        Returns the Merkle tree as a list of lists where tree[i] is the list of hashes at level i.
+        Returns the Merkle tree as a list where tree[0] is the list of leaves,
+        tree[1] is the parent hashes, and so on until tree[n] which is the root hash.
     """
-    def hash_pair(left, right):
-        """
-            Hashes two leaves or nodes to create a parent hash.
-            Returns the hash of the concatenation of left and right.
-        """
-        return Web3.solidity_keccak(['bytes32', 'bytes32'], [left, right])
-    
     tree = [leaves]
     
-    # Build the Merkle Tree
     while len(tree[-1]) > 1:
         current_level = tree[-1]
         next_level = []
         
-        # If the current level has an odd number of elements, duplicate the last element
+        # Handle the case where the current level has an odd number of elements
         if len(current_level) % 2 != 0:
             current_level.append(current_level[-1])
         
-        # Hash pairs of nodes
         for i in range(0, len(current_level), 2):
             left = current_level[i]
             right = current_level[i + 1]
             next_level.append(hash_pair(left, right))
         
         tree.append(next_level)
-        
-        # Debug output for intermediate levels
-        print(f"Level {len(tree) - 1}:", [h.hex() for h in tree[-1]])
-    
-    # Print only the root hash
-    print(f"Final Root Hash: {tree[-1][0].hex()}")
     
     return tree
 
