@@ -80,20 +80,27 @@ def convert_leaves(primes_list):
 
 def build_merkle(leaves):
     """
-        Function to build a Merkle Tree from the list of prime numbers in bytes32 format
-        Returns the Merkle tree (tree) as a list where tree[0] is the list of leaves,
-        tree[1] is the parent hashes, and so on until tree[n] which is the root hash
-        the root hash produced by the "hash_pair" helper function
+        Function to build a Merkle Tree from the list of prime numbers in bytes32 format.
+        Returns the Merkle tree as a list where tree[0] is the list of leaves,
+        tree[1] is the parent hashes, and so on until tree[n] which is the root hash.
     """
     tree = [leaves]
+    
     while len(tree[-1]) > 1:
         current_level = tree[-1]
         next_level = []
+        
+        # Handle the case where the current level has an odd number of elements
+        if len(current_level) % 2 == 1:
+            current_level.append(current_level[-1])
+        
         for i in range(0, len(current_level), 2):
             left = current_level[i]
-            right = current_level[i + 1] if i + 1 < len(current_level) else current_level[i]
+            right = current_level[i + 1]
             next_level.append(hash_pair(left, right))
+        
         tree.append(next_level)
+    
     return tree
 
 
@@ -102,22 +109,24 @@ def prove_merkle(merkle_tree, random_indx):
         Takes a random_index to create a proof of inclusion for and a complete Merkle tree
         as a list of lists where index 0 is the list of leaves, index 1 is the list of
         parent hash values, up to index -1 which is the list of the root hash.
-        returns a proof of inclusion as list of values
+        Returns a proof of inclusion as a list of values.
     """
     merkle_proof = []
     current_index = random_indx
-    for level in merkle_tree[:-1]:
+    
+    for level in merkle_tree[:-1]:  # Exclude the root level
         if current_index % 2 == 0:
             # Even index, sibling is to the right
             sibling_index = current_index + 1 if current_index + 1 < len(level) else None
+            if sibling_index is not None:
+                merkle_proof.append(level[sibling_index])
         else:
             # Odd index, sibling is to the left
             sibling_index = current_index - 1
-        
-        if sibling_index is not None:
             merkle_proof.append(level[sibling_index])
         
         current_index //= 2
+    
     return merkle_proof
 
 
@@ -125,18 +134,22 @@ def sign_challenge(challenge):
     """
         Takes a challenge (string)
         Returns address, sig
-        where address is an ethereum address and sig is a signature (in hex)
+        where address is an Ethereum address and sig is a signature (in hex)
         This method is to allow the auto-grader to verify that you have
         claimed a prime
     """
     acct = get_account()
     addr = acct.address
-    eth_sk = acct.key
 
     message = encode_defunct(text=challenge)
-    eth_sig_obj = acct.sign_message(message)
+    signed_message = acct.sign_message(message)
 
-    return addr, eth_sig_obj.signature.hex()
+    # Ensure signature is in hex format without '0x' prefix
+    signature_hex = signed_message.signature.hex()
+    if signature_hex.startswith("0x"):
+        signature_hex = signature_hex[2:]
+
+    return addr, signature_hex
 
 
 def send_signed_msg(proof, random_leaf):
@@ -150,9 +163,9 @@ def send_signed_msg(proof, random_leaf):
     acct = get_account()
     address, abi = get_contract_info(chain)
     w3 = connect_to(chain)
-    contract = w3.eth.contract(address=address, abi=abi)
 
-    txn = contract.functions.submit(bytes(random_leaf), proof).buildTransaction({
+    # Build the transaction
+    txn = w3.eth.contract(address=address, abi=abi).functions.submit(bytes(random_leaf), proof).buildTransaction({
         'chainId': 97,  # BSC testnet chain ID
         'gas': 2000000,
         'gasPrice': w3.toWei('10', 'gwei'),
