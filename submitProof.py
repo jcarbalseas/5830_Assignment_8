@@ -132,6 +132,9 @@ def build_merkle(leaves):
             next_level.append(hash_pair(left, right))
         
         tree.append(next_level)
+        
+        # Debug output for intermediate levels
+        print(f"Level {len(tree) - 1}:", [h.hex() for h in tree[-1]])
     
     # Print only the root hash
     print(f"Final Root Hash: {tree[-1][0].hex()}")
