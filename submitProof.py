@@ -134,9 +134,12 @@ def build_merkle(leaves):
     
     print("Merkle Tree Levels:")
     for i, level in enumerate(tree):
-        print(f"Level {i}: {level}")
+        print(f"Level {i}:")
+        for h in level:
+            print(f"  {h.hex()}")  # Print hashes in hexadecimal format
     
     return tree
+
 
 def prove_merkle(merkle_tree, random_indx):
     """
