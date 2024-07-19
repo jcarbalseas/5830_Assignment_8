@@ -91,7 +91,7 @@ def build_merkle(leaves):
         next_level = []
         
         # Handle the case where the current level has an odd number of elements
-        if len(current_level) % 2 == 1:
+        if len(current_level) % 2 != 0:
             current_level.append(current_level[-1])
         
         for i in range(0, len(current_level), 2):
