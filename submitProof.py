@@ -132,11 +132,8 @@ def build_merkle(leaves):
         
         tree.append(next_level)
     
-    print("Merkle Tree Levels:")
-    for i, level in enumerate(tree):
-        print(f"Level {i}:")
-        for h in level:
-            print(f"  {h.hex()}")  # Print hashes in hexadecimal format
+    # Print only the root hash
+    print(f"Final Root Hash: {tree[-1][0].hex()}")
     
     return tree
 
