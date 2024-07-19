@@ -116,6 +116,7 @@ def build_merkle(leaves):
     
     tree = [leaves]
     
+    # Build the Merkle Tree
     while len(tree[-1]) > 1:
         current_level = tree[-1]
         next_level = []
@@ -136,6 +137,7 @@ def build_merkle(leaves):
     print(f"Final Root Hash: {tree[-1][0].hex()}")
     
     return tree
+
 
 
 def prove_merkle(merkle_tree, random_indx):
