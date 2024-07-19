@@ -109,11 +109,14 @@ def prove_merkle(merkle_tree, random_indx):
     for level in merkle_tree[:-1]:
         if current_index % 2 == 0:
             # Even index, sibling is to the right
-            sibling_index = current_index + 1 if current_index + 1 < len(level) else current_index
+            sibling_index = current_index + 1 if current_index + 1 < len(level) else None
         else:
             # Odd index, sibling is to the left
             sibling_index = current_index - 1
-        merkle_proof.append(level[sibling_index])
+        
+        if sibling_index is not None:
+            merkle_proof.append(level[sibling_index])
+        
         current_index //= 2
     return merkle_proof
 
@@ -127,7 +130,6 @@ def sign_challenge(challenge):
         claimed a prime
     """
     acct = get_account()
-
     addr = acct.address
     eth_sk = acct.key
 
@@ -150,8 +152,8 @@ def send_signed_msg(proof, random_leaf):
     w3 = connect_to(chain)
     contract = w3.eth.contract(address=address, abi=abi)
 
-    txn = contract.functions.submit(proof, random_leaf).buildTransaction({
-        'chainId': 97,  # BSC testnet chain id
+    txn = contract.functions.submit(bytes(random_leaf), proof).buildTransaction({
+        'chainId': 97,  # BSC testnet chain ID
         'gas': 2000000,
         'gasPrice': w3.toWei('10', 'gwei'),
         'nonce': w3.eth.getTransactionCount(acct.address),
@@ -169,7 +171,7 @@ def connect_to(chain):
         Takes a chain ('avax' or 'bsc') and returns a web3 instance
         connected to that chain.
     """
-    if chain not in ['avax','bsc']:
+    if chain not in ['avax', 'bsc']:
         print(f"{chain} is not a valid option for 'connect_to()'")
         return None
     if chain == 'avax':
@@ -213,7 +215,7 @@ def sign_challenge_verify(challenge, addr, sig):
         Helper to verify signatures, verifies sign_challenge(challenge)
         the same way the grader will. No changes are needed for this method
     """
-    eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
+    eth_encoded_msg = encode_defunct(text=challenge)
 
     if eth_account.Account.recover_message(eth_encoded_msg, signature=sig) == addr:
         print(f"Success: signed the challenge {challenge} using address {addr}!")
