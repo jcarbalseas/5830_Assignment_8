@@ -72,7 +72,7 @@ def convert_leaves(primes_list):
         Converts the leaves (primes_list) to bytes32 format
         returns list of primes where list entries are bytes32 encodings of primes_list entries
     """
-    return [Web3.toBytes(text=hex(p)) for p in primes_list]
+    return [Web3.solidity_keccak(['uint256'], [p]) for p in primes_list]
 
 
 def build_merkle(leaves):
