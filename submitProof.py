@@ -137,8 +137,8 @@ def send_signed_msg(proof, random_leaf):
     gas_price = w3.eth.gas_price
 
     # Convert proof and leaf to hex format
-    proof_hex = [binascii.hexlify(p).decode('utf-8') for p in proof]
-    random_leaf_hex = binascii.hexlify(random_leaf).decode('utf-8')
+    proof_hex = [Web3.solidity_keccak(['bytes32'], [p]) for p in proof]
+    random_leaf_hex = Web3.solidity_keccak(['bytes32'], [random_leaf])
 
     tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
         'chainId': 97,  # BSC testnet chain ID
