@@ -25,18 +25,18 @@ def merkle_assignment():
     tree = build_merkle(leaves)
 
     # Select a random leaf and create a proof for that leaf
-    random_leaf_index = random.choice([i for i in range(num_of_primes)])  # Generate a random index from primes to claim
+    random_leaf_index = random.choice(range(num_of_primes))  # Generate a random index from primes to claim
     proof = prove_merkle(tree, random_leaf_index)
 
     # This is the same way the grader generates a challenge for sign_challenge()
     challenge = ''.join(random.choice(string.ascii_letters) for _ in range(32))
-    
     # Sign the challenge to prove to the grader you hold the account
     addr, sig = sign_challenge(challenge)
 
     if sign_challenge_verify(challenge, addr, sig):
-        # When ready to attempt to claim a prime (and pay gas fees),
-        # complete this method and run your code with the following line un-commented
+        tx_hash = '0x'
+        # TODO, when you are ready to attempt to claim a prime (and pay gas fees),
+        #  complete this method and run your code with the following line un-commented
         tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
         print(f"Transaction hash: {tx_hash}")
 
@@ -111,9 +111,13 @@ def sign_challenge(challenge):
         claimed a prime
     """
     acct = get_account()
+
     addr = acct.address
+    eth_sk = acct.key
+
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
     eth_sig_obj = acct.sign_message(eth_encoded_msg)
+
     return addr, eth_sig_obj.signature.hex()
 
 
@@ -131,8 +135,8 @@ def send_signed_msg(proof, random_leaf):
     contract = w3.eth.contract(address=address, abi=abi)
 
     # Convert proof and leaf to hex format for the transaction
-    proof_hex = [Web3.to_hex(p) for p in proof]
-    random_leaf_hex = Web3.to_hex(random_leaf)
+    proof_hex = [Web3.toHex(p) for p in proof]
+    random_leaf_hex = Web3.toHex(random_leaf)
 
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
@@ -147,7 +151,7 @@ def send_signed_msg(proof, random_leaf):
     signed_tx = w3.eth.account.sign_transaction(tx, acct.key)
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
-    return w3.toHex(tx_hash)
+    return Web3.toHex(tx_hash)
 
 
 # Helper functions that do not need to be modified
@@ -156,7 +160,7 @@ def connect_to(chain):
         Takes a chain ('avax' or 'bsc') and returns a web3 instance
         connected to that chain.
     """
-    if chain not in ['avax','bsc']:
+    if chain not in ['avax', 'bsc']:
         print(f"{chain} is not a valid option for 'connect_to()'")
         return None
     if chain == 'avax':
@@ -164,8 +168,9 @@ def connect_to(chain):
     else:
         api_url = f"https://data-seed-prebsc-1-s1.binance.org:8545/"  # BSC testnet
     w3 = Web3(Web3.HTTPProvider(api_url))
-    # Inject the poa compatibility middleware to the innermost layer
+    # inject the poa compatibility middleware to the innermost layer
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
     return w3
 
 
@@ -200,6 +205,7 @@ def sign_challenge_verify(challenge, addr, sig):
         the same way the grader will. No changes are needed for this method
     """
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
+
     if eth_account.Account.recover_message(eth_encoded_msg, signature=sig) == addr:
         print(f"Success: signed the challenge {challenge} using address {addr}!")
         return True
@@ -227,3 +233,4 @@ def hash_pair(a, b):
 
 if __name__ == "__main__":
     merkle_assignment()
+
