@@ -328,6 +328,8 @@ def build_merkle(leaves):
     
     print("height of tree is:", len(tree))
     print("root value is:", tree[-1])
+    for i, level in enumerate(tree):
+      print(f"The size of level {i} is {len(level)}")
 
     return tree
 
@@ -341,6 +343,7 @@ def prove_merkle(merkle_tree, random_indx):
         parent hash values, up to index -1 which is the list of the root hash.
         Returns a proof of inclusion as a list of values.
     """
+    print(f"Generating proof for {merkle_tree[0][random_indx]}, for a tree with {len(merkle_tree)} levels" )
     merkle_proof = []
     current_index = random_indx
     
@@ -356,7 +359,7 @@ def prove_merkle(merkle_tree, random_indx):
             merkle_proof.append(level[sibling_index])
         
         current_index //= 2
-    
+    print("size of proof is", len(merkle_proof))
     return merkle_proof
 
 
