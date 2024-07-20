@@ -120,25 +120,29 @@ def sign_challenge(challenge):
     return addr, eth_sig_obj.signature.hex()
 
 
+from web3 import Web3
+
 def send_signed_msg(proof, random_leaf):
     """
         Takes a Merkle proof of a leaf, and that leaf (in bytes32 format)
-        builds signs and sends a transaction claiming that leaf (prime)
-        on the contract
+        builds, signs, and sends a transaction claiming that leaf (prime)
+        on the contract.
     """
     chain = 'bsc'
 
+    # Get account and contract details
     acct = get_account()
     address, abi = get_contract_info(chain)
     w3 = connect_to(chain)
     contract = w3.eth.contract(address=address, abi=abi)
 
+    # Prepare transaction parameters
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
 
-    # Convert proof and leaf to hex format
-    proof_hex = [Web3.solidityKeccak(['bytes32'], [p]) for p in proof]
-    random_leaf_hex = Web3.solidityKeccak(['bytes32'], [random_leaf])
+    # Convert proof and leaf to hex format using Web3.solidity_keccak
+    proof_hex = [Web3.solidity_keccak(['bytes32'], [p]) for p in proof]
+    random_leaf_hex = Web3.solidity_keccak(['bytes32'], [random_leaf])
 
     # Build the transaction
     tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
