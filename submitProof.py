@@ -137,9 +137,10 @@ def send_signed_msg(proof, random_leaf):
     gas_price = w3.eth.gas_price
 
     # Convert proof and leaf to hex format
-    proof_hex = [Web3.solidity_keccak(['bytes32'], [p]) for p in proof]
-    random_leaf_hex = Web3.solidity_keccak(['bytes32'], [random_leaf])
+    proof_hex = [Web3.solidityKeccak(['bytes32'], [p]) for p in proof]
+    random_leaf_hex = Web3.solidityKeccak(['bytes32'], [random_leaf])
 
+    # Build the transaction
     tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
         'chainId': 97,  # BSC testnet chain ID
         'gas': 2000000,
@@ -147,10 +148,14 @@ def send_signed_msg(proof, random_leaf):
         'nonce': nonce
     })
 
+    # Sign the transaction
     signed_tx = w3.eth.account.sign_transaction(tx, acct.key)
+
+    # Send the transaction
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
     return w3.toHex(tx_hash)
+
 
 
 # Helper functions that do not need to be modified
