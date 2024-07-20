@@ -34,10 +34,9 @@ def merkle_assignment():
     addr, sig = sign_challenge(challenge)
 
     if sign_challenge_verify(challenge, addr, sig):
-        tx_hash = '0x'
-        # TODO, when you are ready to attempt to claim a prime (and pay gas fees),
-        #  complete this method and run your code with the following line un-commented
-        # tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
+        # Uncomment the following line when you are ready to claim a prime
+        tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
+        print(f"Transaction hash: {tx_hash}")
 
 
 def generate_primes(num_primes):
@@ -136,7 +135,11 @@ def send_signed_msg(proof, random_leaf):
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
 
-    tx = contract.functions.submit(proof, random_leaf).buildTransaction({
+    # Convert proof and leaf to hex format
+    proof_hex = [Web3.toHex(p) for p in proof]
+    random_leaf_hex = Web3.toHex(random_leaf)
+
+    tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
         'chainId': 97,  # BSC testnet chain ID
         'gas': 2000000,
         'gasPrice': gas_price,
@@ -155,7 +158,7 @@ def connect_to(chain):
         Takes a chain ('avax' or 'bsc') and returns a web3 instance
         connected to that chain.
     """
-    if chain not in ['avax','bsc']:
+    if chain not in ['avax', 'bsc']:
         print(f"{chain} is not a valid option for 'connect_to()'")
         return None
     if chain == 'avax':
@@ -225,6 +228,7 @@ def hash_pair(a, b):
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [a, b])
     else:
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [b, a])
+
 
 if __name__ == "__main__":
     merkle_assignment()
