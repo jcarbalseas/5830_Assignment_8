@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from web3 import Web3
 from web3.middleware import geth_poa_middleware  # Necessary for POA chains
+import binascii
 
 
 def merkle_assignment():
@@ -135,9 +136,9 @@ def send_signed_msg(proof, random_leaf):
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
 
-    # Convert proof and leaf to hex format using Web3's encode_hex
-    proof_hex = [Web3.encode_hex(p) for p in proof]
-    random_leaf_hex = Web3.encode_hex(random_leaf)
+    # Convert proof and leaf to hex format
+    proof_hex = [binascii.hexlify(p).decode('utf-8') for p in proof]
+    random_leaf_hex = binascii.hexlify(random_leaf).decode('utf-8')
 
     tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
         'chainId': 97,  # BSC testnet chain ID
