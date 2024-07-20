@@ -308,7 +308,7 @@ def build_merkle(leaves):
         tree[1] is the parent hashes, and so on until tree[n] which is the root hash.
     """
     tree = [leaves]
-    
+    print(f"building tree from leaves of length {len(leaves)}")
     while len(tree[-1]) > 1:
         current_level = tree[-1]
         next_level = []
@@ -326,6 +326,9 @@ def build_merkle(leaves):
         
         tree.append(next_level)
     
+    print("height of tree is:", length(tree))
+    print("root value is:", tree[-1])
+
     return tree
 
 
