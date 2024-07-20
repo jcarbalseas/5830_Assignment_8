@@ -326,7 +326,7 @@ def build_merkle(leaves):
         
         tree.append(next_level)
     
-    print("height of tree is:", length(tree))
+    print("height of tree is:", len(tree))
     print("root value is:", tree[-1])
 
     return tree
