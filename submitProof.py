@@ -258,7 +258,7 @@ def merkle_assignment():
         tx_hash = '0x'
         # When you are ready to attempt to claim a prime (and pay gas fees),
         # complete this method and run your code with the following line un-commented
-        tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
+        # tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
         print("Transaction number:", tx_hash)
 
 
@@ -315,7 +315,9 @@ def build_merkle(leaves):
         
         # Handle the case where the current level has an odd number of elements
         if len(current_level) % 2 != 0:
+            print('build merkle had layer with odd length')
             current_level.append(current_level[-1])
+
         
         for i in range(0, len(current_level), 2):
             left = current_level[i]
@@ -477,7 +479,9 @@ def hash_pair(a, b):
         Another potential gotcha, if you have a prime number (as an int) bytes(prime) will *not* give you the byte representation of the integer prime
         Instead, you must call int.from_bytes(prime,'big').
     """
-    if a < b:
+    a_int = int.from_bytes(a, 'big')
+    b_int = int.from_bytes(b, 'big')
+    if a_int < b_int:
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [a, b])
     else:
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [b, a])
