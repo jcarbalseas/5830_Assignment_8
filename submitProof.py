@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 from web3 import Web3
 from web3.middleware import geth_poa_middleware  # Necessary for POA chains
-import binascii
 
 
 def merkle_assignment():
@@ -30,12 +29,14 @@ def merkle_assignment():
     proof = prove_merkle(tree, random_leaf_index)
 
     # This is the same way the grader generates a challenge for sign_challenge()
-    challenge = ''.join(random.choice(string.ascii_letters) for i in range(32))
+    challenge = ''.join(random.choice(string.ascii_letters) for _ in range(32))
+    
     # Sign the challenge to prove to the grader you hold the account
     addr, sig = sign_challenge(challenge)
 
     if sign_challenge_verify(challenge, addr, sig):
-        # Uncomment the following line when you are ready to claim a prime
+        # When ready to attempt to claim a prime (and pay gas fees),
+        # complete this method and run your code with the following line un-commented
         tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
         print(f"Transaction hash: {tx_hash}")
 
@@ -101,31 +102,41 @@ def prove_merkle(merkle_tree, random_indx):
     return merkle_proof
 
 
-from web3 import Web3
+def sign_challenge(challenge):
+    """
+        Takes a challenge (string)
+        Returns address, sig
+        where address is an ethereum address and sig is a signature (in hex)
+        This method is to allow the auto-grader to verify that you have
+        claimed a prime
+    """
+    acct = get_account()
+    addr = acct.address
+    eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
+    eth_sig_obj = acct.sign_message(eth_encoded_msg)
+    return addr, eth_sig_obj.signature.hex()
+
 
 def send_signed_msg(proof, random_leaf):
     """
         Takes a Merkle proof of a leaf, and that leaf (in bytes32 format)
         builds, signs, and sends a transaction claiming that leaf (prime)
-        on the contract.
+        on the contract
     """
     chain = 'bsc'
 
-    # Get account and contract details
     acct = get_account()
     address, abi = get_contract_info(chain)
     w3 = connect_to(chain)
     contract = w3.eth.contract(address=address, abi=abi)
 
-    # Prepare transaction parameters
+    # Convert proof and leaf to hex format for the transaction
+    proof_hex = [Web3.to_hex(p) for p in proof]
+    random_leaf_hex = Web3.to_hex(random_leaf)
+
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
 
-    # Convert proof and leaf to hex format
-    proof_hex = [Web3.solidity_keccak(['bytes32'], [p]) for p in proof]
-    random_leaf_hex = Web3.solidity_keccak(['bytes32'], [random_leaf])
-
-    # Build the transaction
     tx = contract.functions.submit(proof_hex, random_leaf_hex).build_transaction({
         'chainId': 97,  # BSC testnet chain ID
         'gas': 2000000,
@@ -133,15 +144,10 @@ def send_signed_msg(proof, random_leaf):
         'nonce': nonce
     })
 
-    # Sign the transaction
     signed_tx = w3.eth.account.sign_transaction(tx, acct.key)
-
-    # Send the transaction
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
     return w3.toHex(tx_hash)
-
-
 
 
 # Helper functions that do not need to be modified
@@ -150,7 +156,7 @@ def connect_to(chain):
         Takes a chain ('avax' or 'bsc') and returns a web3 instance
         connected to that chain.
     """
-    if chain not in ['avax', 'bsc']:
+    if chain not in ['avax','bsc']:
         print(f"{chain} is not a valid option for 'connect_to()'")
         return None
     if chain == 'avax':
@@ -158,9 +164,8 @@ def connect_to(chain):
     else:
         api_url = f"https://data-seed-prebsc-1-s1.binance.org:8545/"  # BSC testnet
     w3 = Web3(Web3.HTTPProvider(api_url))
-    # inject the poa compatibility middleware to the innermost layer
+    # Inject the poa compatibility middleware to the innermost layer
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-
     return w3
 
 
@@ -195,7 +200,6 @@ def sign_challenge_verify(challenge, addr, sig):
         the same way the grader will. No changes are needed for this method
     """
     eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
-
     if eth_account.Account.recover_message(eth_encoded_msg, signature=sig) == addr:
         print(f"Success: signed the challenge {challenge} using address {addr}!")
         return True
