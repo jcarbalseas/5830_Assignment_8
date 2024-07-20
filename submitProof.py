@@ -485,9 +485,10 @@ def hash_pair(a, b):
         Another potential gotcha, if you have a prime number (as an int) bytes(prime) will *not* give you the byte representation of the integer prime
         Instead, you must call int.from_bytes(prime,'big').
     """
-    a_int = int.from_bytes(a, 'big')
-    b_int = int.from_bytes(b, 'big')
-    if a_int < b_int:
+    # a_int = int.from_bytes(a, 'big')
+    # b_int = int.from_bytes(b, 'big')
+    # if a_int < b_int:
+    if a < b:
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [a, b])
     else:
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [b, a])
