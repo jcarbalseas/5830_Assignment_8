@@ -101,25 +101,6 @@ def prove_merkle(merkle_tree, random_indx):
     return merkle_proof
 
 
-def sign_challenge(challenge):
-    """
-        Takes a challenge (string)
-        Returns address, sig
-        where address is an ethereum address and sig is a signature (in hex)
-        This method is to allow the auto-grader to verify that you have
-        claimed a prime
-    """
-    acct = get_account()
-
-    addr = acct.address
-    eth_sk = acct.key
-
-    eth_encoded_msg = eth_account.messages.encode_defunct(text=challenge)
-    eth_sig_obj = acct.sign_message(eth_encoded_msg)
-
-    return addr, eth_sig_obj.signature.hex()
-
-
 from web3 import Web3
 
 def send_signed_msg(proof, random_leaf):
@@ -140,12 +121,12 @@ def send_signed_msg(proof, random_leaf):
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
 
-    # Convert proof and leaf to hex format using Web3.solidity_keccak
+    # Convert proof and leaf to hex format
     proof_hex = [Web3.solidity_keccak(['bytes32'], [p]) for p in proof]
     random_leaf_hex = Web3.solidity_keccak(['bytes32'], [random_leaf])
 
     # Build the transaction
-    tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
+    tx = contract.functions.submit(proof_hex, random_leaf_hex).build_transaction({
         'chainId': 97,  # BSC testnet chain ID
         'gas': 2000000,
         'gasPrice': gas_price,
@@ -159,6 +140,7 @@ def send_signed_msg(proof, random_leaf):
     tx_hash = w3.eth.send_raw_transaction(signed_tx.rawTransaction)
 
     return w3.toHex(tx_hash)
+
 
 
 
