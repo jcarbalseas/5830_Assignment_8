@@ -135,9 +135,9 @@ def send_signed_msg(proof, random_leaf):
     nonce = w3.eth.get_transaction_count(acct.address)
     gas_price = w3.eth.gas_price
 
-    # Convert proof and leaf to hex format
-    proof_hex = [Web3.toHex(p) for p in proof]
-    random_leaf_hex = Web3.toHex(random_leaf)
+    # Convert proof and leaf to hex format using Web3's encode_hex
+    proof_hex = [Web3.encode_hex(p) for p in proof]
+    random_leaf_hex = Web3.encode_hex(random_leaf)
 
     tx = contract.functions.submit(proof_hex, random_leaf_hex).buildTransaction({
         'chainId': 97,  # BSC testnet chain ID
@@ -228,7 +228,6 @@ def hash_pair(a, b):
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [a, b])
     else:
         return Web3.solidity_keccak(['bytes32', 'bytes32'], [b, a])
-
 
 if __name__ == "__main__":
     merkle_assignment()
