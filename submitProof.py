@@ -37,7 +37,7 @@ def merkle_assignment():
         tx_hash = '0x'
         # TODO, when you are ready to attempt to claim a prime (and pay gas fees),
         #  complete this method and run your code with the following line un-commented
-        tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
+        # tx_hash = send_signed_msg(proof, leaves[random_leaf_index])
 
 
 def generate_primes(num_primes):
@@ -62,7 +62,7 @@ def convert_leaves(primes_list):
         Converts the leaves (primes_list) to bytes32 format
         returns list of primes where list entries are bytes32 encodings of primes_list entries
     """
-    return [Web3.toBytes(int=p) for p in primes_list]
+    return [Web3.toBytes(val).rjust(32, b'\0') for val in primes_list]
 
 
 def build_merkle(leaves):
@@ -222,9 +222,9 @@ def hash_pair(a, b):
         Instead, you must call int.from_bytes(prime,'big').
     """
     if a < b:
-        return Web3.solidity_keccak(['bytes32', 'bytes32'], [a, b])
+        return Web3.solidityKeccak(['bytes32', 'bytes32'], [a, b])
     else:
-        return Web3.solidity_keccak(['bytes32', 'bytes32'], [b, a])
+        return Web3.solidityKeccak(['bytes32', 'bytes32'], [b, a])
 
 if __name__ == "__main__":
     merkle_assignment()
